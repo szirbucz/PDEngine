@@ -6,6 +6,9 @@ import org.rulez.demokracia.pdengine.exception.TooShortException;
 
 final class StringLengthValidationUtil {
 
+  private StringLengthValidationUtil() {
+  }
+
   public static void checkNotTooLong(
       final String inputString, final String description, final int maxLength
   ) {

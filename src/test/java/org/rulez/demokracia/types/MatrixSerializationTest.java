@@ -28,7 +28,7 @@ public class MatrixSerializationTest {
   @Test
   public void matrix_can_be_serialized_and_deserialized() throws Exception {
     serializeMatrix(outputStream, theMatrix);
-    Matrix<String, Integer> myMatrix =
+    final Matrix<String, Integer> myMatrix =
         deserializeMatrix(outputStream.toByteArray());
     assertTrue(
         myMatrix.getKeyCollection().containsAll(buildLabels(MATRIX_SIZE))
@@ -39,15 +39,15 @@ public class MatrixSerializationTest {
   public void matrix_with_an_element_can_be_deserialized() throws Exception {
     theMatrix.setElement(COLUMN_KEY, ROW_KEY, VALUE);
     serializeMatrix(outputStream, theMatrix);
-    Matrix<String, Integer> myMatrix =
+    final Matrix<String, Integer> myMatrix =
         deserializeMatrix(outputStream.toByteArray());
-    assertEquals(myMatrix.getElement(COLUMN_KEY, ROW_KEY), VALUE);
+    assertEquals(VALUE, myMatrix.getElement(COLUMN_KEY, ROW_KEY));
   }
 
   @Test
   public void a_full_matrix_can_be_deserialized() throws Exception {
-    int matrixSize = 100;
-    Matrix<String, Integer> myMatrix =
+    final int matrixSize = 100;
+    final Matrix<String, Integer> myMatrix =
         buildMatrix(matrixSize);
     assertMatrixIsCorrect(myMatrix);
   }
@@ -55,7 +55,7 @@ public class MatrixSerializationTest {
   private void assertMatrixIsCorrect(
       final Matrix<String, Integer> matrix
   ) {
-    int matrixSize = matrix.getKeyCollection().size();
+    final int matrixSize = matrix.getKeyCollection().size();
     for (int row = 0; row < matrixSize; row++)
       for (int col = 0; col < matrixSize; col++)
         assertEquals(

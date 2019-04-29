@@ -8,6 +8,9 @@ import org.rulez.demokracia.pdengine.vote.Vote;
 
 public final class CastVotePreferencesValidatorUtil {
 
+  private CastVotePreferencesValidatorUtil() {
+  }
+
   public static void validatePreferences(
       final List<RankedChoice> rankedChoices, final Vote vote
   ) {

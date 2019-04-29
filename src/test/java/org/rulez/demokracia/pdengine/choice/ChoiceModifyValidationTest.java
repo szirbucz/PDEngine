@@ -12,6 +12,7 @@ import org.rulez.demokracia.pdengine.annotations.TestedFeature;
 import org.rulez.demokracia.pdengine.annotations.TestedOperation;
 import org.rulez.demokracia.pdengine.dataobjects.VoteAdminInfo;
 import org.rulez.demokracia.pdengine.exception.ReportedException;
+import org.rulez.demokracia.pdengine.testhelpers.ThrowableTester;
 
 @TestedFeature("Manage votes")
 @TestedOperation("modify vote")
@@ -41,39 +42,29 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
             invalidvoteId
         )
     ).when(voteService).getVote(invalidvoteId);
-    assertThrows(
-        () -> choiceService.modifyChoice(
-            new VoteAdminInfo(invalidvoteId, vote.getAdminKey()), choice.getId(),
-            NEW_CHOICE_NAME
-        )
+
+    assertModifyChoice(
+        invalidvoteId, vote.getAdminKey(), choice.getId(), NEW_CHOICE_NAME
     ).assertMessageIs("illegal voteId");
   }
 
   @TestedBehaviour(VALIDATES_INPUTS)
   @Test
   public void invalid_choiceId_is_rejected() {
-    String invalidChoiceId = "invalidChoiceId";
+    final String invalidChoiceId = "invalidChoiceId";
 
-    assertThrows(
-        () -> choiceService
-            .modifyChoice(new VoteAdminInfo(vote.getId(), vote.getAdminKey()),
-                invalidChoiceId, NEW_CHOICE_NAME
-            )
+    assertModifyChoice(
+        vote.getId(), vote.getAdminKey(), invalidChoiceId, NEW_CHOICE_NAME
     ).assertMessageIs("Illegal choiceId");
   }
 
   @TestedBehaviour(VALIDATES_INPUTS)
   @Test
   public void invalid_adminKey_is_rejected() {
-    String invalidAdminKey = "invalidAdminKey";
+    final String invalidAdminKey = "invalidAdminKey";
 
-    assertThrows(
-        () -> choiceService.modifyChoice(
-            new VoteAdminInfo(
-                vote.getId(),
-                invalidAdminKey
-            ), choice.getId(), NEW_CHOICE_NAME
-        )
+    assertModifyChoice(
+        vote.getId(), invalidAdminKey, choice.getId(), NEW_CHOICE_NAME
     ).assertMessageIs("Illegal adminKey");
   }
 
@@ -93,15 +84,9 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
   public void when_ballots_are_already_issued_choices_cannot_be_modified() {
     vote.getBallots().add("Test Ballot");
 
-    assertThrows(
-        () -> choiceService.modifyChoice(
-            new VoteAdminInfo(
-                vote.getId(),
-                vote.getAdminKey()
-            ), choice.getId(), "something else"
-        )
-    )
-        .assertMessageIs("Vote modification disallowed: ballots already issued");
+    assertModifyChoice(
+        vote.getId(), vote.getAdminKey(), choice.getId(), "something else"
+    ).assertMessageIs("Vote modification disallowed: ballots already issued");
   }
 
   @TestedBehaviour(
@@ -111,17 +96,11 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
   public void userAdmin_cannot_modify_choice_if_canAddin_is_false() {
     vote.getParameters().setAddinable(false);
 
-    assertThrows(
-        () -> choiceService.modifyChoice(
-            new VoteAdminInfo(
-                vote.getId(),
-                USER
-            ), choice.getId(), NEW_CHOICE_NAME
-        )
-    )
-        .assertMessageIs(
-            "Choice modification disallowed: adminKey is user, but canAddin is false"
-        );
+    assertModifyChoice(
+        vote.getId(), USER, choice.getId(), NEW_CHOICE_NAME
+    ).assertMessageIs(
+        "Choice modification disallowed: adminKey is user, but canAddin is false"
+    );
 
   }
 
@@ -133,14 +112,7 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
       userAdmin_cannot_modify_choice_if_it_is_not_added_by_other_user() {
     vote.getParameters().setAddinable(true);
 
-    assertThrows(
-        () -> choiceService.modifyChoice(
-            new VoteAdminInfo(
-                vote.getId(),
-                USER
-            ), choice.getId(), NEW_CHOICE_NAME
-        )
-    )
+    assertModifyChoice(vote.getId(), USER, choice.getId(), NEW_CHOICE_NAME)
         .assertMessageIs(
             "Choice modification disallowed: adminKey is user, " +
                 "and the choice was added by a different user"
@@ -155,7 +127,7 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
   public void
       userAdmin_can_modify_the_choice_if_canAddin_is_true_and_he_is_the_choice_creator() {
     vote.getParameters().setAddinable(true);
-    Choice choice2 = new Choice("choice2", ADMIN);
+    final Choice choice2 = new Choice("choice2", ADMIN);
     vote.addChoice(choice2);
     when(authService.getAuthenticatedUserName()).thenReturn(ADMIN);
     choiceService
@@ -164,6 +136,20 @@ public class ChoiceModifyValidationTest extends ChoiceTestBase {
         );
 
     assertEquals(NEW_CHOICE_NAME, choice2.getName());
+  }
+
+  private ThrowableTester assertModifyChoice(
+      final String voteId, final String adminKey, final String choiceId,
+      final String newName
+  ) {
+    return assertThrows(
+        () -> choiceService.modifyChoice(
+            new VoteAdminInfo(
+                vote.getId(),
+                USER
+            ), choice.getId(), NEW_CHOICE_NAME
+        )
+    );
   }
 
 }

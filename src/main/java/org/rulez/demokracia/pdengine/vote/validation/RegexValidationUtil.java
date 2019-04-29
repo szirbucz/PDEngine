@@ -7,13 +7,16 @@ import org.rulez.demokracia.pdengine.exception.NotValidCharsException;
 
 final class RegexValidationUtil {
 
+  private RegexValidationUtil() {
+  }
+
   public static void checkPattern(
       final String inputString, final String description,
       final String patternString
   ) {
-    Pattern pattern =
+    final Pattern pattern =
         Pattern.compile(patternString, Pattern.UNICODE_CHARACTER_CLASS);
-    Matcher matcher = pattern.matcher(inputString);
+    final Matcher matcher = pattern.matcher(inputString);
 
     if (!matcher.matches())
       throw new NotValidCharsException(description);

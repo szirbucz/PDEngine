@@ -9,13 +9,16 @@ import java.util.stream.Collectors;
 
 import org.rulez.demokracia.pdengine.vote.AssuranceType;
 
-public class ValidationUtil {
+public final class ValidationUtil {
 
   public static final int MIN_STRING_LENGTH = 3;
   public static final int MAX_STRING_LENGTH = 255;
   public static final String EMPTY_STRING = "";
   private static final String NO_SPACE_PATTERN = "(\\d|\\w)+";
   private static final String WITH_SPACE_PATTERN = "(\\d| |\\w)+";
+
+  private ValidationUtil() {
+  }
 
   public static void checkVoteName(final String voteName) {
     checkString(voteName, "vote name", WITH_SPACE_PATTERN);

@@ -10,6 +10,7 @@ import org.rulez.demokracia.pdengine.annotations.TestedBehaviour;
 import org.rulez.demokracia.pdengine.annotations.TestedFeature;
 import org.rulez.demokracia.pdengine.annotations.TestedOperation;
 import org.rulez.demokracia.pdengine.dataobjects.VoteAdminInfo;
+import org.rulez.demokracia.pdengine.testhelpers.ThrowableTester;
 
 @TestedFeature("Manage votes")
 @TestedOperation("delete choice")
@@ -37,9 +38,8 @@ public class ChoiceDeleteAdminKeyIsUserTest extends ChoiceTestBase {
   public void if_canAddin_is_false_then_other_users_cannot_delete_choices() {
     final Choice choiceToDelete = createChoice(TEST_USER_NAME, false);
     when(authService.getAuthenticatedUserName()).thenReturn(TEST_USER_NAME);
-    assertThrows(
-        () -> choiceService.deleteChoice(new VoteAdminInfo(vote.getId(), USER), choiceToDelete.getId())
-    ).assertMessageIs("The adminKey is \"user\" but canAddin is false.");
+    assertDeleteChoice(vote.getId(), USER, choiceToDelete.getId())
+        .assertMessageIs("The adminKey is \"user\" but canAddin is false.");
   }
 
   @TestedBehaviour(
@@ -49,10 +49,8 @@ public class ChoiceDeleteAdminKeyIsUserTest extends ChoiceTestBase {
   public void
       if_adminKey_is_user_and_the_user_is_not_the_one_who_added_the_choice_then_the_choice_cannot_be_deleted() {
     final Choice choiceToDelete = createChoice(USER, true);
-    assertThrows(
-        () -> choiceService.deleteChoice(new VoteAdminInfo(vote.getId(), USER),
-            choiceToDelete.getId()
-        )
+    assertDeleteChoice(
+        vote.getId(), USER, choiceToDelete.getId()
     ).assertMessageIs(
         "The adminKey is \"user\" but the user is not same with that user who added the choice."
     );
@@ -100,15 +98,9 @@ public class ChoiceDeleteAdminKeyIsUserTest extends ChoiceTestBase {
     final Choice choiceToDelete = createChoice(TEST_USER_NAME, true);
     vote.getBallots().add("TestBallot");
 
-    assertThrows(
-        () -> choiceService.deleteChoice(
-            new VoteAdminInfo(
-                vote.getId(),
-                vote.getAdminKey()
-            ), choiceToDelete.getId()
-        )
-    )
-        .assertMessageIs("Vote modification disallowed: ballots already issued");
+    assertDeleteChoice(
+        vote.getId(), vote.getAdminKey(), choiceToDelete.getId()
+    ).assertMessageIs("Vote modification disallowed: ballots already issued");
   }
 
   private Choice
@@ -117,5 +109,13 @@ public class ChoiceDeleteAdminKeyIsUserTest extends ChoiceTestBase {
     final Choice choiceToDelete = new Choice(CHOICE1, userName);
     vote.addChoice(choiceToDelete);
     return choiceToDelete;
+  }
+
+  private ThrowableTester assertDeleteChoice(
+      final String voteId, final String adminKey, final String choiceId
+  ) {
+    return assertThrows(
+        () -> choiceService.deleteChoice(new VoteAdminInfo(voteId, adminKey), choiceId)
+    );
   }
 }
